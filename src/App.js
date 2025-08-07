@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 
 // --- Firebase Imports ---
@@ -8,6 +7,10 @@ import { getFirestore, collection, addDoc, query, onSnapshot, serverTimestamp, o
 
 // --- Three.js ---
 import * as THREE from 'three';
+
+// --- GSAP ---
+// GSAP and ScrollTrigger are loaded from a script tag in the final HTML,
+// so we access them from the window object.
 
 // --- SVG Icons ---
 const MapPinIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 mr-2 text-slate-400"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>;
@@ -56,11 +59,11 @@ const ThreeBackground = () => {
         scene.add(earthGroup);
         const textureLoader = new THREE.TextureLoader();
         const earthGeometry = new THREE.SphereGeometry(1.5, 64, 64);
-        const earthMaterial = new THREE.MeshPhongMaterial({ map: textureLoader.load('https://s3-us-west-2.amazonaws.com/s.cdpn.io/141228/earthmap1k.jpg'), bumpMap: textureLoader.load('https://s3-us-west-2.amazonaws.com/s.cdpn.io/141228/earthbump1k.jpg'), bumpScale: 0.05 });
+        const earthMaterial = new THREE.MeshPhongMaterial({ map: textureLoader.load('https://raw.githubusercontent.com/jscastro76/three-js-earth/master/src/img/earthmap.jpg'), bumpMap: textureLoader.load('https://raw.githubusercontent.com/jscastro76/three-js-earth/master/src/img/earthbump.jpg'), bumpScale: 0.05 });
         const earth = new THREE.Mesh(earthGeometry, earthMaterial);
         earthGroup.add(earth);
         const cloudGeometry = new THREE.SphereGeometry(1.53, 64, 64);
-        const cloudMaterial = new THREE.MeshPhongMaterial({ map: textureLoader.load('https://s3-us-west-2.amazonaws.com/s.cdpn.io/141228/earthcloudmap.png'), transparent: true, opacity: 0.6 });
+        const cloudMaterial = new THREE.MeshPhongMaterial({ map: textureLoader.load('https://raw.githubusercontent.com/jscastro76/three-js-earth/master/src/img/earthcloud.png'), transparent: true, opacity: 0.6 });
         const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
         earthGroup.add(clouds);
         const atmosphereGeometry = new THREE.SphereGeometry(1.6, 64, 64);
@@ -127,7 +130,7 @@ const ThreeBackground = () => {
 
 // --- UI Components ---
 const Header = () => ( <header className="bg-slate-900/70 backdrop-blur-lg sticky top-0 z-50 border-b border-slate-700"><nav className="container mx-auto px-6 py-4 flex justify-between items-center"><a href="#home" className="text-2xl font-bold text-white">Kara</a><div className="hidden md:flex space-x-8 items-center"><a href="#dashboard" className="text-slate-300 hover:text-blue-400 transition">Dashboard</a><a href="#kit" className="text-slate-300 hover:text-blue-400 transition">The Kit</a><a href="#about" className="text-slate-300 hover:text-blue-400 transition">About Us</a></div></nav></header> );
-const AQIDisplay = () => {
+const AQIDisplay = ({ apiKey }) => {
   const [aqiData, setAqiData] = useState(null); const [loading, setLoading] = useState(true); const [error, setError] = useState(null);
   const [healthTips, setHealthTips] = useState('');
   const [tipsLoading, setTipsLoading] = useState(false);
@@ -144,18 +147,25 @@ const AQIDisplay = () => {
     try {
         let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
         const payload = { contents: chatHistory };
-        const apiKey = "";
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
         const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Gemini API responded with an error:", response.status, errorText);
+            throw new Error(`API request failed with status ${response.status}`);
+        }
+
         const result = await response.json();
         if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
             setHealthTips(result.candidates[0].content.parts[0].text);
         } else {
-            setHealthTips("Could not generate tips at the moment. Please try again.");
+            console.error("Unexpected Gemini API response structure:", result);
+            setHealthTips("Could not generate tips due to an unexpected response format.");
         }
     } catch (error) {
-        console.error("Gemini API error:", error);
-        setHealthTips("An error occurred while fetching health tips.");
+        console.error("Gemini API call failed:", error);
+        setHealthTips("An error occurred while fetching health tips. Check the console for details.");
     } finally {
         setTipsLoading(false);
     }
@@ -171,7 +181,7 @@ const AQIDisplay = () => {
   </div>);
 };
 
-const ComplaintForm = ({ db, auth }) => {
+const ComplaintForm = ({ db, auth, apiKey }) => {
   const [description, setDescription] = useState(''); const [location, setLocation] = useState(''); const [category, setCategory] = useState(''); const [isSubmitting, setIsSubmitting] = useState(false); const [message, setMessage] = useState('');
   const [aiContent, setAiContent] = useState({ summary: '', draft: '' });
   const [isGenerating, setIsGenerating] = useState(false);
@@ -187,17 +197,31 @@ const ComplaintForm = ({ db, auth }) => {
     try {
         let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
         const payload = { contents: chatHistory };
-        const apiKey = "";
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
         const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Gemini API responded with an error:", response.status, errorText);
+            throw new Error(`API request failed with status ${response.status}`);
+        }
+
         const result = await response.json();
         if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
-            const parsedResult = JSON.parse(result.candidates[0].content.parts[0].text);
-            setAiContent(parsedResult);
+            let textContent = result.candidates[0].content.parts[0].text;
+            textContent = textContent.replace(/```json/g, '').replace(/```/g, '').trim();
+            try {
+                const parsedResult = JSON.parse(textContent);
+                setAiContent(parsedResult);
+            } catch (parseError) {
+                console.error("Failed to parse Gemini response JSON:", parseError, "Raw text:", textContent);
+                setMessage("AI generated an invalid response format.");
+            }
         } else {
-            setMessage("Could not generate AI content.");
+            console.error("Unexpected Gemini API response structure:", result);
+            setMessage("Could not generate AI content due to an unexpected response.");
         }
-    } catch (error) { console.error("Gemini API error:", error); setMessage("Failed to generate AI content."); }
+    } catch (error) { console.error("Gemini API call failed:", error); setMessage("Failed to connect to the AI service. Check the console."); }
     finally { setIsGenerating(false); }
   };
 
@@ -206,7 +230,7 @@ const ComplaintForm = ({ db, auth }) => {
     if (!description || !location || !category || !auth.currentUser) { setMessage('Please fill in all fields.'); return; }
     setIsSubmitting(true); setMessage('');
     try {
-      await addDoc(collection(db, `artifacts/${typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'}/public/data/complaints`), {
+      await addDoc(collection(db, `complaints`), {
         userId: auth.currentUser.uid, description, location, category, status: 'Received', upvotes: 0, timestamp: serverTimestamp(),
       });
       setDescription(''); setLocation(''); setCategory(''); setAiContent({ summary: '', draft: '' }); setMessage('Report submitted successfully!');
@@ -221,7 +245,7 @@ const ComplaintForm = ({ db, auth }) => {
 };
 const ComplaintFeed = ({ complaints, db }) => {
     const handleUpvote = async (id) => {
-        const complaintRef = doc(db, `artifacts/${typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'}/public/data/complaints`, id);
+        const complaintRef = doc(db, `complaints`, id);
         try { await updateDoc(complaintRef, { upvotes: increment(1) }); } 
         catch (error) { console.error("Error upvoting: ", error); }
     };
@@ -237,26 +261,41 @@ export default function App() {
   const [firebase, setFirebase] = useState({ db: null, auth: null });
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [complaints, setComplaints] = useState([]);
+  
+  // Define the Gemini API Key in one central place
+  const GEMINI_API_KEY = "AIzaSyDn7yWMATzanguLxkihirfqbKWnAPJgZVQ"; // <-- IMPORTANT: PASTE YOUR KEY HERE
 
   useEffect(() => {
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-    if (firebaseConfig) {
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const db = getFirestore(app);
-      setFirebase({ db, auth });
-      onAuthStateChanged(auth, async (user) => {
-        if (!user) { try { if (initialAuthToken) await signInWithCustomToken(auth, initialAuthToken); else await signInAnonymously(auth); } catch (error) { console.error("Auth failed:", error); } }
-        setIsAuthReady(true);
-      });
-    } else { console.warn("Firebase config not found."); setIsAuthReady(true); }
+    const firebaseConfig = {
+      apiKey: "AIzaSyCsLJrI1dJbmPyZ-HAFDFI6vh2Vhen4OD0",
+      authDomain: "kara-ff66c.firebaseapp.com",
+      projectId: "kara-ff66c",
+      storageBucket: "kara-ff66c.appspot.com",
+      messagingSenderId: "450627636310",
+      appId: "1:450627636310:web:d6b21e85446eb55598bff7"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    setFirebase({ db, auth });
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        try {
+          await signInAnonymously(auth);
+        } catch (error) {
+          console.error("Anonymous sign-in failed:", error);
+        }
+      }
+      setIsAuthReady(true);
+    });
   }, []);
 
   useEffect(() => {
     if (!firebase.db || !isAuthReady) return; 
     
-    const q = query(collection(firebase.db, `artifacts/${typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'}/public/data/complaints`), orderBy('timestamp', 'desc'));
+    const q = query(collection(firebase.db, `complaints`), orderBy('timestamp', 'desc'));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const complaintsData = querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
       setComplaints(complaintsData);
@@ -273,7 +312,7 @@ export default function App() {
         <Header />
         <main>
           <section id="home" className="content-section text-center"><div className="content-wrapper"><h1 className="text-5xl md:text-7xl font-extrabold text-white">Breathe Freely. Travel Safely.</h1><p className="text-xl text-slate-300 mt-4 max-w-3xl mx-auto">Kara is your personal pollution protection system. Get real-time alerts, report issues, and take control of your health.</p><a href="#dashboard" className="mt-8 inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full text-lg hover:bg-blue-700 transition-transform hover:scale-105">Go to Dashboard</a></div></section>
-          <section id="dashboard" className="content-section"><div className="content-wrapper w-full max-w-6xl"><div className="grid grid-cols-1 lg:grid-cols-3 gap-8"><div className="lg:col-span-1"><AQIDisplay /><div className="mt-8"><ComplaintForm db={firebase.db} auth={firebase.auth} /></div></div><div className="lg:col-span-2">{isAuthReady && firebase.db ? <DashboardTabs db={firebase.db} auth={firebase.auth} complaints={complaints} userId={firebase.auth.currentUser?.uid} /> : <div className="flex justify-center items-center h-full"><SpinnerIcon /></div>}</div></div></div></section>
+          <section id="dashboard" className="content-section"><div className="content-wrapper w-full max-w-6xl"><div className="grid grid-cols-1 lg:grid-cols-3 gap-8"><div className="lg:col-span-1"><AQIDisplay apiKey={GEMINI_API_KEY} /><div className="mt-8"><ComplaintForm db={firebase.db} auth={firebase.auth} apiKey={GEMINI_API_KEY} /></div></div><div className="lg:col-span-2">{isAuthReady && firebase.db ? <DashboardTabs db={firebase.db} auth={firebase.auth} complaints={complaints} userId={firebase.auth.currentUser?.uid} /> : <div className="flex justify-center items-center h-full"><SpinnerIcon /></div>}</div></div></div></section>
           <section id="kit" className="content-section text-center"><div className="content-wrapper"><h2 className="text-4xl font-bold text-white mb-4">The Kara Protection Kit</h2><p className="text-lg text-slate-300 max-w-2xl mx-auto mb-8">Your first line of defense against urban pollution. The kit includes smart, reusable masks and a pocket-sized air quality sensor that syncs with the app.</p><div className="bg-slate-800/50 p-8 rounded-2xl border border-slate-700 inline-block"><img src="https://placehold.co/600x400/1e293b/ffffff?text=Kara+Kit+Components" alt="Kara Kit" className="rounded-lg" /></div></div></section>
           <section id="about" className="content-section text-center"><div className="content-wrapper"><h2 className="text-4xl font-bold text-white mb-4">Our Team</h2><p className="text-lg text-slate-300 max-w-2xl mx-auto mb-12">We are a passionate team dedicated to empowering urban youth to take control of their health and environment with Kara.</p><div className="flex justify-center gap-8"><div className="text-center"><img src="https://placehold.co/150x150/1e293b/ffffff?text=R" alt="Rayyan" className="w-24 h-24 rounded-full mx-auto mb-2 border-2 border-blue-400"/><h3 className="text-xl font-bold text-white">Rayyan</h3><p className="text-blue-400">Co-Founder</p></div><div className="text-center"><img src="https://placehold.co/150x150/1e293b/ffffff?text=K" alt="Kanishka" className="w-24 h-24 rounded-full mx-auto mb-2 border-2 border-blue-400"/><h3 className="text-xl font-bold text-white">Kanishka</h3><p className="text-blue-400">Co-Founder</p></div></div></div></section>
           <section id="contact" className="content-section"><div className="content-wrapper"><h2 className="text-4xl font-bold text-white text-center mb-8">Join Our Mission</h2><form action="#" method="POST" className="max-w-lg mx-auto"><div className="grid grid-cols-1 gap-y-4"><input type="text" placeholder="Full name" className="bg-slate-800/50 block w-full py-3 px-4 placeholder-slate-400 rounded-md border border-slate-600 focus:ring-blue-500 focus:border-blue-500" /><input type="email" placeholder="Email" className="bg-slate-800/50 block w-full py-3 px-4 placeholder-slate-400 rounded-md border border-slate-600 focus:ring-blue-500 focus:border-blue-500" /><textarea rows="4" placeholder="Your Message" className="bg-slate-800/50 block w-full py-3 px-4 placeholder-slate-400 rounded-md border border-slate-600 focus:ring-blue-500 focus:border-blue-500"></textarea><button type="submit" className="w-full cta-button bg-blue-600 text-white font-bold py-3 px-6 rounded-md hover:bg-blue-700">Send Message</button></div></form></div></section>
