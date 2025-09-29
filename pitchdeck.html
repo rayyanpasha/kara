@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KARA Pitch Deck - Funding Proposal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        .deck-container {
+            width: 100%;
+            height: 100vh;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+
+        .slide {
+            width: 100%;
+            min-height: 100vh;
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            scroll-snap-align: start;
+            position: relative;
+        }
+
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.03;
+            background: radial-gradient(circle at 50% 50%, #00d4ff, transparent 50%);
+            pointer-events: none;
+        }
+
+        .slide-number {
+            position: absolute;
+            top: 30px;
+            right: 60px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        h1 {
+            font-size: 72px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #00d4ff, #7b2ff7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h2 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: #00d4ff;
+        }
+
+        h3 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #7b2ff7;
+        }
+
+        p {
+            font-size: 20px;
+            line-height: 1.6;
+            color: #cccccc;
+            margin-bottom: 15px;
+        }
+
+        .highlight {
+            color: #00d4ff;
+            font-weight: 600;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(123, 47, 247, 0.1));
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 48px;
+            font-weight: 700;
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 16px;
+            color: #999;
+        }
+
+        .problem-section {
+            background: rgba(255, 50, 50, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            border-left: 5px solid #ff3232;
+            margin: 30px 0;
+        }
+
+        .solution-section {
+            background: rgba(0, 212, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            border-left: 5px solid #00d4ff;
+            margin: 30px 0;
+        }
+
+        .budget-section {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.05), rgba(123, 47, 247, 0.05));
+            padding: 40px;
+            border-radius: 20px;
+            margin: 30px 0;
+            border: 2px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px;
+            background: rgba(0, 212, 255, 0.15);
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 5px solid #00d4ff;
+        }
+
+        .category-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #00d4ff;
+        }
+
+        .category-total {
+            font-size: 32px;
+            font-weight: 700;
+            color: #7b2ff7;
+        }
+
+        .line-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 25px;
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .line-item:hover {
+            background: rgba(0, 212, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .item-description {
+            flex: 1;
+            color: #cccccc;
+        }
+
+        .item-cost {
+            font-weight: 600;
+            color: #00d4ff;
+            min-width: 120px;
+            text-align: right;
+        }
+
+        .total-box {
+            background: linear-gradient(135deg, #00d4ff, #7b2ff7);
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+            margin: 40px 0;
+            box-shadow: 0 10px 40px rgba(0, 212, 255, 0.3);
+        }
+
+        .total-label {
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 10px;
+        }
+
+        .total-amount {
+            font-size: 72px;
+            font-weight: 900;
+            color: #ffffff;
+        }
+
+        .timeline {
+            margin: 40px 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            margin-bottom: 30px;
+            align-items: flex-start;
+        }
+
+        .timeline-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #7b2ff7;
+            min-width: 60px;
+        }
+
+        .timeline-content {
+            flex: 1;
+            padding-left: 20px;
+        }
+
+        .milestone-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .milestone-card {
+            background: rgba(0, 212, 255, 0.08);
+            padding: 30px;
+            border-radius: 15px;
+            border-left: 4px solid #00d4ff;
+        }
+
+        .milestone-month {
+            font-size: 16px;
+            color: #7b2ff7;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .milestone-title {
+            font-size: 20px;
+            color: #00d4ff;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .milestone-desc {
+            font-size: 16px;
+            color: #999;
+        }
+
+        .cta-section {
+            text-align: center;
+            margin-top: 60px;
+            padding: 60px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(123, 47, 247, 0.2));
+            border-radius: 20px;
+        }
+
+        .logo {
+            font-size: 96px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #00d4ff, #7b2ff7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+        }
+
+        .subtitle {
+            font-size: 24px;
+            color: #999;
+            margin-bottom: 60px;
+        }
+
+        ul {
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #cccccc;
+            font-size: 18px;
+        }
+
+        li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #00d4ff;
+            font-weight: 700;
+        }
+
+        .roi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .roi-card {
+            background: linear-gradient(135deg, rgba(123, 47, 247, 0.15), rgba(0, 212, 255, 0.15));
+            padding: 35px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .roi-metric {
+            font-size: 48px;
+            font-weight: 700;
+            color: #00d4ff;
+            margin-bottom: 15px;
+        }
+
+        .roi-label {
+            font-size: 18px;
+            color: #999;
+        }
+
+        .lean-approach {
+            background: rgba(123, 47, 247, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            border-left: 5px solid #7b2ff7;
+        }
+    </style>
+</head>
+<body>
+    <div class="deck-container">
+        <!-- Slide 1: Title -->
+        <div class="slide">
+            <div class="slide-number">01</div>
+            <div class="logo">KARA</div>
+            <div class="subtitle">Transforming Youth Frustration into Climate Action</div>
+            <p style="font-size: 28px; color: #00d4ff; margin-bottom: 30px;">A civic-tech ecosystem empowering Bengaluru's teenagers to reclaim their air quality</p>
+            <div style="margin-top: 40px;">
+                <p style="font-size: 22px;"><strong>Team:</strong> Kanishka Raghavendra & Mohammed Rayyan Pasha</p>
+                <p style="font-size: 22px; margin-top: 20px; color: #7b2ff7;"><strong>Funding Ask:</strong> ₹35,000 for Initial Prototype Phase</p>
+            </div>
+        </div>
+
+        <!-- Slide 2: The Crisis -->
+        <div class="slide">
+            <div class="slide-number">02</div>
+            <h2>The Crisis We're Solving</h2>
+            <div class="problem-section">
+                <p>Bengaluru's teenagers navigate a daily commute through <span class="highlight">hazardous dust, which constitutes 57% of the city's PM10 pollution</span>, chronically breaching national safety standards.</p>
+                <p style="margin-top: 20px;">This crisis is enabled by a "growth-first" agenda and systemic neglect—evidenced by only <span class="highlight">37% of clean air funds being used.</span></p>
+            </div>
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-number">84%</div>
+                    <div class="stat-label">Students use NO protection</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">41%</div>
+                    <div class="stat-label">Feel helpless</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">25%</div>
+                    <div class="stat-label">Rise in youth asthma</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Our Solution -->
+        <div class="slide">
+            <div class="slide-number">03</div>
+            <h2>Our Solution</h2>
+            <div class="solution-section">
+                <p style="font-size: 24px;">Kara solves the teen dilemma of <span class="highlight">"I want to act but don't know how"</span></p>
+                <div style="margin-top: 40px;">
+                    <h3>Three Integrated Components:</h3>
+                    <ul style="margin-top: 20px;">
+                        <li><strong>AI-Powered App:</strong> Real-time AQI monitoring, AI-assisted complaint system, smart route suggestions, pollution hotspot mapping</li>
+                        <li><strong>"Dust Busting" Events:</strong> Community-led collection of hazardous dust with proper safety protocols</li>
+                        <li><strong>Circular Economy:</strong> Upcycling collected dust into sellable moss art frames, creating sustainable revenue</li>
+                    </ul>
+                </div>
+            </div>
+            <p style="margin-top: 30px; font-size: 22px; color: #00d4ff;">Current Traction: <strong>600+ students engaged, 462 validated survey responses, 1 formal school partnership</strong></p>
+        </div>
+
+        <!-- Slide 4: Our Lean Approach -->
+        <div class="slide">
+            <div class="slide-number">04</div>
+            <h2>Our Lean Prototype Strategy</h2>
+            <div class="lean-approach">
+                <h3>Why ₹35,000 is Sufficient for MVP</h3>
+                <p style="margin-top: 20px;">We're taking a <span class="highlight">bootstrapped, resource-efficient approach</span> to build a working prototype that proves our model before scaling.</p>
+            </div>
+            <div class="milestone-grid">
+                <div class="milestone-card">
+                    <div class="milestone-title">No-Code First</div>
+                    <div class="milestone-desc">Using AI platforms and no-code tools to build MVP faster and cheaper than custom development</div>
+                </div>
+                <div class="milestone-card">
+                    <div class="milestone-title">Free-Tier Services</div>
+                    <div class="milestone-desc">Leveraging free tiers of cloud services, APIs, and open-source solutions for initial testing</div>
+                </div>
+                <div class="milestone-card">
+                    <div class="milestone-title">Volunteer Power</div>
+                    <div class="milestone-desc">Our 600+ engaged students are our workforce—we invest in safety, not labor costs</div>
+                </div>
+                <div class="milestone-card">
+                    <div class="milestone-title">Minimum Viable Events</div>
+                    <div class="milestone-desc">Starting with 2 focused "Dust Busting" events instead of 5 to prove the model</div>
+                </div>
+                <div class="milestone-card">
+                    <div class="milestone-title">DIY Production</div>
+                    <div class="milestone-desc">Creating initial moss frames in-house using existing resources and sourced materials</div>
+                </div>
+                <div class="milestone-card">
+                    <div class="milestone-title">Guerrilla Marketing</div>
+                    <div class="milestone-desc">Using social media and word-of-mouth instead of paid advertising</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Funding Breakdown -->
+        <div class="slide">
+            <div class="slide-number">05</div>
+            <h2>Lean Funding Breakdown</h2>
+            
+            <div class="category-header">
+                <div class="category-title">1. Building the App (MVP)</div>
+                <div class="category-total">₹15,000</div>
+            </div>
+
+            <div class="budget-section">
+                <div class="line-item">
+                    <div class="item-description"><strong>AI Platform Subscription (Pro)</strong><br>12-month access to advanced AI tools for rapid app development</div>
+                    <div class="item-cost">₹6,000</div>
+                </div>
+                <div class="line-item">
+                    <div class="item-description"><strong>No-Code Platform (Bubble/FlutterFlow)</strong><br>6-month subscription for mobile app builder</div>
+                    <div class="item-cost">₹4,000</div>
+                </div>
+                <div class="line-item">
+                    <div class="item-description"><strong>Domain & Basic Hosting</strong><br>Professional domain + entry-level cloud hosting for 12 months</div>
+                    <div class="item-cost">₹2,500</div>
+                </div>
+                <div class="line-item">
+                    <div class="item-description"><strong>Essential Services Testing</strong><br>Limited API credits for maps, AI features, AQI data during prototype phase</div>
+                    <div class="item-cost">₹2,500</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; padding: 20px; background: rgba(0,212,255,0.05); border-radius: 10px;">
+                <p style="font-size: 16px; color: #999;"><strong>Cost-Saving Strategy:</strong> Using free tiers initially, only paying for essentials. Open-source libraries for core features. Student developers from our community contributing to development.</p>
+            </div>
+        </div>
+
+        <!-- Slide 6: Dust Busting Budget -->
+        <div class="slide">
+            <div class="slide-number">06</div>
+            <h2>Lean Funding Breakdown</h2>
+            
+            <div class="category-header">
+                <div class="category-title">2. Dust Busting Events (2 Events)</div>
+                <div class="category-total">₹12,000</div>
+            </div>
+
+            <div class="budget-section">
+                <h3 style="color: #00d4ff; margin-bottom: 20px;">Safety Equipment (50 volunteers per event)</h3>
+                <div class="line-item">
+                    <div class="item-description"><strong>N95 Masks</strong><br>100 quality masks @ ₹40 each (bulk order discount)</div>
+                    <div class="item-cost">₹4,000</div>
+                </div>
+                <div class="line-item">
+                    <div class="item-description"><strong>Disposable Gloves</strong><br>200 pairs @ ₹15 per pair</div>
+                    <div class="item-cost">₹3,000</div>
+                </div>
+                <div class="line-item">
+                    <div class="item-description"><strong>Basic Safety Goggles</strong><br>50 pairs @ ₹30 each (shared/reusable)</div>
+                    <div class="item-cost">₹1,500</div>
+                </div>
+
+                <h3 style="color: #00d4ff; margin: 30px 0 20px 0;">Event Operations</h3>
+                <div class="line-item">
+                    <div class="item-description"><strong>Collection Materials</strong><br>Heavy-duty bags, digital scale, basic collection tools</div>
+                    <div class="item-cost">₹1,500</div>
+                </div>
+                <div class="line-item">
+                    <div class="item-description"><strong>Student Captain Stipends</strong><br>5 core leaders @ ₹200 each per event (2 events)</div>
+                    <div class="item-cost">₹2,000</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; padding: 20px; background: rgba(0,212,255,0.05); border-radius: 10px;">
+                <p style="font-size: 16px; color: #999;"><strong>Cost-Saving Strategy:</strong> Volunteers provide own transportation. Using smartphones for documentation instead of professional equipment. Partnering with schools for venue space (free). Water/snacks sponsored by local businesses.</p>
+            </div>
+        </div>
+
+        <!-- Slide 7: Moss Production Budget -->
+        <div class="slide">
+            <div class="slide-number">07</div>
+            <h2>Lean Funding Breakdown</h2>
+            
+            <div class="category-header">
+                <div class="category-title">3. Moss Art Prototypes (20 Frames)</div>
+                <div class="category-total">₹8,000</div>
+            </div>
+
+            <div class="budget-section">
+                <div class="line-item">
+                    <div class="item-description"><strong>Basic Decontamination Materials</strong><br>Chemical agents for heavy metal extraction, safety containers</div>
+                    <div class="item-cost">₹2,000</div>
+                </div>
+                <div class="line-item">
+                    <div class="item-description"><strong>Simple Frame Materials</strong><br>20 basic wooden frames @ ₹100 each</div>
+                    <div class="item-cost">₹2,000</div>
+                </div>
+                <div class="line-item">
+                    <div class="item-description"><strong>Preserved Moss</strong><br>Small-batch moss purchase for prototypes</div>
+                    <div class="item-cost">₹1,500</div>
+                </div>
+                <div class="line-item">
+                    <div class="item-description"><strong>Substrate Ingredients</strong><br>Biochar materials, compost, recycled paper pulp, adhesives</div>
+                    <div class="item-cost">₹1,500</div>
+                </div>
+                <div class="line-item">
+                    <div class="item-description"><strong>Safety Gear for Production</strong><br>Lab gloves, protective equipment for handling treated dust</div>
+                    <div class="item-cost">₹1,000</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; padding: 20px; background: rgba(0,212,255,0.05); border-radius: 10px;">
+                <p style="font-size: 16px; color: #999;"><strong>Cost-Saving Strategy:</strong> Using home/school lab for initial processing. Sourcing local waste materials for biochar. DIY frame assembly. Testing with small batches before scaling. Selling first 20 frames funds next production cycle.</p>
+            </div>
+        </div>
+
+        <!-- Slide 8: Total & Timeline -->
+        <div class="slide">
+            <div class="slide-number">08</div>
+            <h2>Total Investment & Timeline</h2>
+            
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-label">App Development</div>
+                    <div class="stat-number">₹15K</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Dust Busting Events</div>
+                    <div class="stat-number">₹12K</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Moss Prototypes</div>
+                    <div class="stat-number">₹8K</div>
+                </div>
+            </div>
+
+            <div class="total-box">
+                <div class="total-label">TOTAL FUNDING REQUEST</div>
+                <div class="total-amount">₹35,000</div>
+                <p style="color: rgba(255,255,255,0.8); margin-top: 20px; font-size: 20px;">3-Month Initial Prototype Phase</p>
+            </div>
+
+            <div style="margin-top: 40px;">
+                <h3>Why This Budget Works</h3>
+                <ul style="margin-top: 20px;">
+                    <li><strong>42.9%</strong> - App MVP (functional prototype, not perfect product)</li>
+                    <li><strong>34.3%</strong> - Community action (2 proof-of-concept events)</li>
+                    <li><strong>22.8%</strong> - Product validation (20 frames to pitch CSR)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 9: 90-Day Execution Plan -->
+        <div class="slide">
+            <div class="slide-number">09</div>
+            <h2>90-Day Execution Plan</h2>
+            
+            <div class="milestone-grid">
+                <div class="milestone-card">
+                    <div class="milestone-month">Month 1</div>
+                    <div class="milestone-title">Foundation</div>
+                    <div class="milestone-desc">
+                        • Subscribe to AI & no-code platforms<br>
+                        • Begin app development<br>
+                        • Recruit 5 Campaign Captains<br>
+                        • Source safety equipment & materials
+                    </div>
+                </div>
+                <div class="milestone-card">
+                    <div class="milestone-month">Month 2</div>
+                    <div class="milestone-title">Action & Build</div>
+                    <div class="milestone-desc">
+                        • Launch app beta (core features)<br>
+                        • Execute 2 Dust Busting events<br>
+                        • Begin moss frame production<br>
+                        • Document all impact
+                    </div>
+                </div>
+                <div class="milestone-card">
+                    <div class="milestone-month">Month 3</div>
+                    <div class="milestone-title">Validation & Scale</div>
+                    <div class="milestone-desc">
+                        • Complete 20 moss frames<br>
+                        • Test app with 100+ users<br>
+                        • Create Impact Report<br>
+                        • Pitch to CSR for scaling funds
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 40px; padding: 30px; background: rgba(0,212,255,0.1); border-radius: 15px;">
+                <h3>Our Commitment</h3>
+                <p style="margin-top: 15px;">By Month 3, we will have: <span class="highlight">A working app with 100+ active users, 2 documented community events, 20 sellable moss frames, and a clear path to self-sustainability through CSR partnerships.</span></p>
+            </div>
+        </div>
+
+        <!-- Slide 10: What We've Already Done -->
+        <div class="slide">
+            <div class="slide-number">10</div>
+            <h2>Validation: What We've Already Proven</h2>
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-number">462</div>
+                    <div class="stat-label">Survey responses validating problem</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">600+</div>
+                    <div class="stat-label">Students ready to mobilize</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">15+</div>
+                    <div class="stat-label">Institutions engaged</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">1</div>
+                    <div class="stat-label">Formal school partnership</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">3</div>
+                    <div class="stat-label">Successful moss prototypes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Positive app UX feedback (15 testers)</div>
+                </div>
+            </div>
+
+            <div class="solution-section" style="margin-top: 40px;">
+                <h3>We're Not Starting From Zero</h3>
+                <ul>
+                    <li>Community is activated and waiting</li>
+                    <li>Product desirability validated with focus groups</li>
+                    <li>App concept tested and refined</li>
+                    <li>School partnership proves institutional interest</li>
+                    <li>Research completed and documented</li>
+                </ul>
+                <p style="margin-top: 20px; color: #00d4ff;"><strong>We just need ₹35,000 to execute what we've already validated.</strong></p>
+            </div>
+        </div>
+
+        <!-- Slide 11: Return on Investment -->
+        <div class="slide">
+            <div class="slide-number">11</div>
+            <h2>Return on Investment</h2>
+            
+            <div class="roi-grid">
+                <div class="roi-card">
+                    <div class="roi-metric">100+</div>
+                    <div class="roi-label">App Users in 90 Days</div>
+                </div>
+                <div class="roi-card">
+                    <div class="roi-metric">100kg+</div>
+                    <div class="roi-label">Hazardous Dust Removed</div>
+                </div>
+                <div class="roi-card">
+                    <div class="roi-metric">₹60K</div>
+                    <div class="roi-label">Revenue from 20 Moss Frames</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 50px;">
+                <h3>Path to Self-Sustainability</h3>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-number">01</div>
+                        <div class="timeline-content">
+                            <h3>Proof of Concept (Month 1-3)</h3>
+                            <p>₹35K from Nebula → Working app + 2 events + 20 frames</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-number">02</div>
+                        <div class="timeline-content">
+                            <h3>Product Revenue (Month 3-6)</h3>
+                            <p>₹60K from moss frame sales → Fund next 100 frames + app improvements</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-item">
+                            <div class="timeline-number">03</div>
+                            <div class="timeline-content">
+                                <h3>CSR Partnerships (Month 6+)</h3>
+                                <p>Impact data + prototypes → Corporate CSR funding for scaling across 10+ schools and 1,000+ students</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            <!-- Slide 12: Call to Action -->
+            <div class="slide">
+                <div class="slide-number">12</div>
+                <h2>Join Us in Reclaiming Bengaluru’s Air</h2>
+                <div class="cta-section">
+                    <div class="logo">KARA</div>
+                    <p class="subtitle">A civic-tech ecosystem empowering Bengaluru’s teenagers</p>
+                    <p style="font-size: 22px; margin-bottom: 30px;">Your support of <span class="highlight">₹35,000</span> transforms teenage frustration into <span class="highlight">climate action</span> and builds the first scalable model of youth-led air quality improvement.</p>
+                    <h3 style="margin-top: 40px; color: #00d4ff;">Together, let’s make Bengaluru’s air breathable again.</h3>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    
